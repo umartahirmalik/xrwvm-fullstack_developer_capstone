@@ -9,7 +9,7 @@
 # from datetime import datetime
 
 from django.http import JsonResponse
-from .restapis import get_request
+from .restapis import get_request, post_review
 from django.contrib.auth import login, authenticate
 import logging
 import json
@@ -58,13 +58,57 @@ def get_dealerships(request, state="All"):
     return JsonResponse({"status": 200, "dealers": dealers})
 
 # Create a `get_dealer_reviews` view to render the reviews of a dealer
-# def get_dealer_reviews(request,dealer_id):
+def get_dealer_reviews(request, dealer_id):
+    reviews = get_request(f"fetchReviews/dealer/{dealer_id}")
+    return JsonResponse({"status": 200, "reviews": reviews})
+
+# def get_dealer_reviews_old(request,dealer_id):
 # ...
 
 # Create a `get_dealer_details` view to render the dealer details
-# def get_dealer_details(request, dealer_id):
+def get_dealer_details(request, dealer_id):
+    dealer = get_request(f"fetchDealer/{dealer_id}")
+    return JsonResponse({"status": 200, "dealer": dealer})
+
+# def get_dealer_details_old(request, dealer_id):
 # ...
 
 # Create a `add_review` view to submit a review
 # def add_review(request):
 # ...
+
+
+def get_cars(request):
+    from .models import CarMake, CarModel
+    from .populate import initiate
+
+    if CarMake.objects.count() == 0:
+        initiate()
+
+    car_models = CarModel.objects.select_related("car_make").all()
+
+    cars = [
+        {
+            "CarModel": car.name,
+            "CarMake": car.car_make.name
+        }
+        for car in car_models
+    ]
+
+    return JsonResponse({"CarModels": cars})
+
+
+@csrf_exempt
+def add_review(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            result = post_review(data)
+            return JsonResponse({"status": 200, "review": result})
+        except Exception as error:
+            return JsonResponse(
+                {"status": 500, "error": str(error)},
+                status=500
+            )
+
+    return JsonResponse({"status": 405}, status=405)

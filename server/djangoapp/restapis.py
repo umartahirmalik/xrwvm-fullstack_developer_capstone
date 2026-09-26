@@ -22,3 +22,17 @@ def get_request(endpoint, **kwargs):
     except requests.RequestException as error:
         print(error)
         return []
+
+
+def post_review(data_dict):
+    try:
+        response = requests.post(
+            backend_url + "/insert_review",
+            json=data_dict,
+            timeout=10
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as error:
+        print("POST review error:", error)
+        return {}
