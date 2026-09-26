@@ -9,6 +9,7 @@
 # from datetime import datetime
 
 from django.http import JsonResponse
+from .restapis import get_request
 from django.contrib.auth import login, authenticate
 import logging
 import json
@@ -49,8 +50,12 @@ def login_user(request):
 
 # # Update the `get_dealerships` view to render the index page with
 # a list of dealerships
-# def get_dealerships(request):
-# ...
+def get_dealerships(request, state="All"):
+    endpoint = "fetchDealers"
+    if state != "All":
+        endpoint = f"fetchDealers/{state}"
+    dealers = get_request(endpoint)
+    return JsonResponse({"status": 200, "dealers": dealers})
 
 # Create a `get_dealer_reviews` view to render the reviews of a dealer
 # def get_dealer_reviews(request,dealer_id):
